@@ -1,7 +1,7 @@
 function getIRIParameterValue(requestedKey){
-    Let pageIRI = window.location.search.substring(1);
+    let pageIRI = window.location.search.substring(1);
     let pageIRIVariables = pageIRI.split('&');
-    for(let i = 0; i < pageIRIVariables.length; i++){
+    for(let i = 0 ; i < pageIRIVariables.length; i++){
         let data = pageIRIVariables[i].split('=');
         let key = data[0];
         let value = data[1];
@@ -12,64 +12,38 @@ function getIRIParameterValue(requestedKey){
 }
 
 let username = decodeURI(getIRIParameterValue('username'));
-if ((typeof username == 'underfined')) || (username === null)){
+if ((typeof username == 'undefined') || (username === null)) {
     username = "Anonymous_"+Math.floor(Math.random()*1000);
 }
 
-let chatRoom = 'lobby';
+let chatRoom = 'Lobby';
 
-/* set to sokcet io */
-
-
-$('#messages').prepend('<b>'+username+':</b>');
-
-
+/* Set up the socket.io connction to the server */
 let socket = io();
 socket.on('log',function(array) {
     console.log.apply(console,array);
 });
 
-socket.on('join_room', (payload) =>){
+socket.on('join_room_response', (payload) =>{
     if(( typeof payload == 'undefined') || (payload === null)){
-        console.log('Sever did not send');
+        console.log('Server did not send a payload');
         return;
     }
     if(payload.result === 'fail'){
         console.log(payload.message);
-        return;
+        return; 
     }
-    let newString = '<p class=\'join_room_response\'>'+payload.username+' join the '+payload.room+'. (There are '+payload.count+' users in this room)</p>';
-    $('#message').prepend(newStrin);
-})
+    let newString = '<p class=\'join_room_response\'>'+payload.username+' joined the '+payload.room+'. (There are '+payload.count+' users in this room)</p>';
+    $('#messages').prepend(newString);  
+});
 
-function sendChatMessage(){
-    let request = {};
-    request.room = chatRoom;
-    request.username = username;
-    request.message = $('#chatMessage').val();
-    console.log('**** Clinet log message, sending \'send_chat_message\' command: '+JASON.stringify(request));
-    socket.emit('send_chat_message',request);
-}
-
-socket.on('send_chat_message_response', (payload) =>){
-    if(( typeof payload == 'undefined') || (payload === null)){
-        console.log('Sever did not send');
-        return;
-    }
-    if(payload.result === 'fail'){
-        console.log(payload.message);
-        return;
-    }
-    let newString = '<p class=\'chat_message\'><b>'+payload.username+'</b>: '+payload.message+')</p>';
-    $('#message').prepend(newStrin);
-
-/* request to join chat room */
 $( () => {
     let request = {};
     request.room = chatRoom;
     request.username = username;
-    console.log('**** Clinet log message, sending \'join_room\' command: '+JASON.stringify(request));
+    console.log('**** Client log message, sending \'join_room\' command: '+JSON.stringify(request));
     socket.emit('join_room', request);
 });
+
 
 
