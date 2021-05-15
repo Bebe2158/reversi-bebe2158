@@ -106,6 +106,56 @@ io.on('connection', (socket) => {
             }
         });
 	});
+
+/* send chat message command handler */
+    socket.on('send_chat_message', (payload) => {
+        serverLog('Server received a command','\'send_chat_message\'',JSON.stringify(payload));
+        if(( typeof payload == 'undefined') || (payload === null)){
+         response = {};
+         response.result = 'fail';
+         response.message = 'client did not send a payload';
+         socket.emit('send_chat_message',response);
+         serverLog('send_chat_message command failed', JSON.stringify(response));
+         return;
+        }
+        let room = payload.room;
+        let username = payload.username;
+        let message = payload.message;
+        if(( typeof room == 'undefined') || (room === null)){
+         response = {};
+         response.result = 'fail';
+         response.message = 'client did not send a valid room to message';
+         socket.emit('send_chat_message_response',response);
+         serverLog('send_chat_message command failed', JSON.stringify(response));
+         return;
+        }
+        if(( typeof username == 'undefined') || (username === null)){
+         response = {};
+         response.result = 'fail';
+         response.message = 'client did not send a valid username as a message souce ';
+         socket.emit('send_chat_message_response',response);
+         serverLog('send_chat_message command failed', JSON.stringify(response));
+         return;
+        }
+        if(( typeof message == 'undefined') || (message === null)){
+         response = {};
+         response.result = 'fail';
+         response.message = 'client did not send a valid message';
+         socket.emit('send_chat_message_response',response);
+         serverLog('send_chat_message command failed', JSON.stringify(response));
+         return;
+        }
+
+        /* Handle the command */
+        let response = {};
+        response.result = 'success';
+        response.username = username;
+        response.room = room;
+        response.message = message;
+        /* Tell everyone in the room what the message is */
+        io.of('/').to(room).emit('send_chat_message_response',response);
+        serverLog('send_chat_message command succeeded', JSON.stringify(response));
+	});
 }); 
 
 
